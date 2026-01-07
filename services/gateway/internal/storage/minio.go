@@ -16,6 +16,7 @@ func InitMinio() *minio.Client {
 	endpoint := os.Getenv("MINIO_ENDPOINT")
 	accessKeyID := os.Getenv("MINIO_ACCESS_KEY")
 	secretAccessKey := os.Getenv("MINIO_SECRET_KEY")
+	bucketName := os.Getenv("MINIO_BUCKET_NAME")
 	useSSL := false 
 
 	minioClient, err := minio.New( endpoint, &minio.Options{
@@ -29,7 +30,7 @@ func InitMinio() *minio.Client {
 	}
 
 	// check if the Bucket exists if not then we create using helper func
-	err = ensureBucketExists(minioClient, "vectormesh-docs")
+	err = ensureBucketExists(minioClient, bucketName)
 	if err != nil {
 		log.Printf("Warning: Bucket setup failed: %v\n", err);
 	}
