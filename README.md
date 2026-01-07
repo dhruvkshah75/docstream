@@ -1,5 +1,7 @@
 # VectorMesh - Distributed RAG Ingestion Engine
-
+VectorMesh is a high-throughput distributed ingestion engine that transforms large-scale static documents (PDFs) into searchable vector embeddings.   
+It uses a Go-based API Gateway for high-concurrency file handling and Python Microservices for AI-driven processing, coordinated via RabbitMQ and MinIO.   
+This architecture decouples ingestion from query logic, ensuring scalable, low-latency "Chat with your Data" capabilities.
 
 
 ## Repo Structure 

@@ -19,7 +19,7 @@ func InitMinio() *minio.Client {
 	bucketName := os.Getenv("MINIO_BUCKET_NAME")
 	useSSL := false 
 
-	minioClient, err := minio.New( endpoint, &minio.Options{
+	minioClient, err := minio.New(endpoint, &minio.Options{
 		Creds: credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
 		Secure: useSSL,
 	})
