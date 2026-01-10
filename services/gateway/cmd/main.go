@@ -3,11 +3,13 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/dhruvkshah75/vectormesh/gateway/internal/handlers"
 	"github.com/dhruvkshah75/vectormesh/gateway/internal/producer"
 	"github.com/dhruvkshah75/vectormesh/gateway/internal/storage"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -29,6 +31,16 @@ func main() {
 	defer rabbitChan.Close()
 
 	r := gin.Default()
+
+	// This tells the browser: "It's okay for a frontend running on port 3000 to talk to me"
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"}, // React/Next.js app for frontend
+		AllowMethods:     []string{"POST", "GET", "OPTIONS", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Register Routes
 	// Dependency Injection: Pass the client and channel to the handler
