@@ -1,0 +1,41 @@
+name: Gateway CI
+
+# Trigger: Run this only when files in 'services/gateway' change
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'services/gateway/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'services/gateway/**'
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./services/gateway
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+
+    # Ensures go.mod is valid
+    - name: Install Dependencies
+      run: go mod download
+
+    # Verify Code Compiles (Critical Step)
+    - name: Build Binary
+      run: go build -v ./cmd/main.go
+
+    # Verify Docker Build (Ensures Dockerfile is valid)
+    - name: Build Docker Image
+      run: docker build . --file Dockerfile --tag vectormesh-gateway:ci-test
