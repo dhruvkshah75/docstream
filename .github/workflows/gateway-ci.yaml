@@ -9,6 +9,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'services/gateway/**'
+  workflow_dispatch:
 
 jobs:
   # JOB 1: Setup & Verify Dependencies
