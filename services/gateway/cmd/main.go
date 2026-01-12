@@ -15,26 +15,31 @@ import (
 )
 
 func main() {
-	// We ignore the error if the file is missing because in PRODUCTION, there is no .env file (vars come from Docker/K8s).
+	// 1. Load Env
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found!")
+		log.Println("No .env file found, using system vars")
 	}
 
-	// connect to the minIO service
+	// 2. Initialize Infrastructure
 	minioClient := storage.InitMinio()
-
-	// Connect to Queue
 	rabbitConn, rabbitChan, rabbitQueue := producer.InitRabbitMQ()
+	
+	// --- Initialize SQLite ---
+	sqliteDB := storage.InitSQLite() // calling the storage.sqlite.go file 
 
-	// Clean up connections when server stops
+	// close the connections when the server stops 
 	defer rabbitConn.Close()
 	defer rabbitChan.Close()
+	defer sqliteDB.Close() 
+
+	// Initialize Handlers
+	authHandler := handlers.NewAuthHandler(sqliteDB) // Create Auth Handler
 
 	r := gin.Default()
 
-	// This tells the browser: "It's okay for a frontend running on port 3000 to talk to me"
+	// CORS Config
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // React/Next.js app for frontend
+		AllowOrigins:     []string{"http://localhost:3000"},  // the frontend to talk 
 		AllowMethods:     []string{"POST", "GET", "OPTIONS", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -42,11 +47,15 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Register Routes
-	// Dependency Injection: Pass the client and channel to the handler
+	// --- Routes --
+	// Auth Routes
+	r.POST("/signup", authHandler.Signup) 
+	r.POST("/login", authHandler.Login)   
+
+	// Upload Route
 	r.POST("/upload", handlers.UploadHandler(minioClient, rabbitChan, rabbitQueue))
 	
-	// Simple Health Check
+	// Health Check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "Gateway is active"})
 	})

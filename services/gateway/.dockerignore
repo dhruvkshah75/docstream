@@ -3,3 +3,7 @@
 bin/
 vendor/
 *.md
+
+# Ignore local data
+data/
+*.db
