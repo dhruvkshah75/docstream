@@ -1,3 +1,5 @@
 .env
 # ignore the database file of the sqlite
 services/gateway/data/
+
+services/ingestion-worker/venv

@@ -1,24 +1,26 @@
 # STAGE 1: Build the binary executable
-# We use the full Go image to compile the code
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-# Copy dependencies first (for better caching)
+# Install C-Compiler (gcc) & libraries required for SQLite
+RUN apk add --no-cache gcc musl-dev
+
+# Copy dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Build the binary executable
-RUN CGO_ENABLED=0 GOOS=linux go build -o gateway ./cmd/main.go
+# Enable CGO (CGO_ENABLED=1) because go-sqlite3 needs it
+# We also add "-ldflags" to make the binary smaller and cleaner
+RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -o gateway ./cmd/main.go
 
 
-# STAGE 2: Run the Binary executuble 
-# We use a tiny "Alpine" Linux image for the final container
+# STAGE 2: Run the Binary executable
 FROM alpine:latest
 
 WORKDIR /root/
 
-# Install certificates so we can make HTTPS requests (to AWS/MinIO)
+# Install certificates for HTTPS (AWS/MinIO)
 RUN apk --no-cache add ca-certificates
 
 # Copy the executable from the builder stage 
@@ -27,6 +29,4 @@ COPY --from=builder /app/gateway .
 # Expose the port 
 EXPOSE 8080
 
-RUN ["./gateway"]
-
-
+CMD ["./gateway"]
