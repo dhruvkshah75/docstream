@@ -1,4 +1,4 @@
-module github.com/dhruvkshah75/vectormesh/gateway
+module github.com/dhruvkshah75/docstream/gateway
 
 go 1.25.1
 

@@ -1,12 +1,12 @@
-# VectorMesh - Distributed RAG Ingestion Engine
-VectorMesh is a high-throughput distributed ingestion engine that transforms large-scale static documents (PDFs) into searchable vector embeddings.   
+# docstream - Distributed RAG Ingestion Engine
+docstream is a high-throughput distributed ingestion engine that transforms large-scale static documents (PDFs) into searchable vector embeddings.   
 It uses a Go-based API Gateway for high-concurrency file handling and Python Microservices for AI-driven processing, coordinated via RabbitMQ and MinIO.   
 This architecture decouples ingestion from query logic, ensuring scalable, low-latency "Chat with your Data" capabilities.
 
 
 ## Repo Structure 
 ```
-VectorMesh/
+docstream/
 ├── docker-compose.yml           # Spins up RabbitMQ, Qdrant, MinIO, Postgres locally
 ├── Makefile                     # Shortcuts (e.g., `make up`, `make run-gateway`)
 ├── .env.example                 # Template for env vars (OpenAI Key, DB Host, etc.)

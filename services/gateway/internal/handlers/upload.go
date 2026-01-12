@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/dhruvkshah75/vectormesh/gateway/internal/producer"
+	"github.com/dhruvkshah75/docstream/gateway/internal/producer"
 	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
 	amqp "github.com/rabbitmq/amqp091-go"

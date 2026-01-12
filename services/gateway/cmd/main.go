@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/dhruvkshah75/vectormesh/gateway/internal/handlers"
-	"github.com/dhruvkshah75/vectormesh/gateway/internal/producer"
-	"github.com/dhruvkshah75/vectormesh/gateway/internal/storage"
+	"github.com/dhruvkshah75/docstream/gateway/internal/handlers"
+	"github.com/dhruvkshah75/docstream/gateway/internal/producer"
+	"github.com/dhruvkshah75/docstream/gateway/internal/storage"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
