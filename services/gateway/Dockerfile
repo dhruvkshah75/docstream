@@ -6,12 +6,16 @@ WORKDIR /app
 # Install C-Compiler (gcc) & libraries required for SQLite
 RUN apk add --no-cache gcc musl-dev
 
-# Copy dependencies
+# 2. Copy dependencies FIRST (for caching)
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Enable CGO (CGO_ENABLED=1) because go-sqlite3 needs it
-# We also add "-ldflags" to make the binary smaller and cleaner
+# COPY THE SOURCE CODE 
+# This copies everything from your project folder into the container's /app folder
+COPY . .
+
+# Build the binary
+# CGO_ENABLED=1 is required for SQLite
 RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -o gateway ./cmd/main.go
 
 
@@ -20,13 +24,15 @@ FROM alpine:latest
 
 WORKDIR /root/
 
-# Install certificates for HTTPS (AWS/MinIO)
+# Install certificates
 RUN apk --no-cache add ca-certificates
 
-# Copy the executable from the builder stage 
+# Copy the binary from the builder
 COPY --from=builder /app/gateway .
 
-# Expose the port 
+# Create the data directory for SQLite (optional but good practice)
+RUN mkdir -p /root/data
+
 EXPOSE 8080
 
 CMD ["./gateway"]
