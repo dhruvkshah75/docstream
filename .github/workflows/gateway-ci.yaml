@@ -1,6 +1,5 @@
 name: Gateway CI
 
-# Trigger: Run this only when files in 'services/gateway' change
 on:
   push:
     branches: [ "main" ]
@@ -12,30 +11,58 @@ on:
       - 'services/gateway/**'
 
 jobs:
-  build-check:
+  # JOB 1: Setup & Verify Dependencies
+  setup:
     runs-on: ubuntu-latest
-    
     defaults:
       run:
         working-directory: ./services/gateway
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.22'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25' # Updated to match your go.mod
+          cache-dependency-path: services/gateway/go.sum 
 
-    # Ensures go.mod is valid
-    - name: Install Dependencies
-      run: go mod download
+      - name: Verify Dependencies
+        run: go mod download
 
-    # Verify Code Compiles (Critical Step)
-    - name: Build Binary
-      run: go build -v ./cmd/main.go
+  # JOB 2: Build Binary 
+  build-binary:
+    needs: setup 
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/gateway
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # Verify Docker Build (Ensures Dockerfile is valid)
-    - name: Build Docker Image
-      run: docker build . --file Dockerfile --tag vectormesh-gateway:ci-test
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+          # This automatically restores the cache created in the 'setup' job
+          cache-dependency-path: services/gateway/go.sum 
+
+      - name: Build Go Binary
+        run: go build -v ./cmd/main.go
+
+  # JOB 3: Build Docker Image 
+  build-docker:
+    needs: setup 
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/gateway
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # We do NOT need "Set up Go" here because Docker builds inside its own container
+      - name: Build Docker Image
+        # We use the Dockerfile to build
+        run: docker build . --file Dockerfile --tag vectormesh-gateway:ci-test
