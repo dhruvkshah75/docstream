@@ -3,3 +3,6 @@
 services/gateway/data/
 
 services/ingestion-worker/venv
+
+playground/
+playground/venv
