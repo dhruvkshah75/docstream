@@ -1,4 +1,5 @@
 .env
+.vscode/
 # ignore the database file of the sqlite
 services/gateway/data/
 
