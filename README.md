@@ -1,7 +1,14 @@
-# docstream - Distributed RAG Ingestion Engine
-
 <div align="center">
 
+  <img src="assets/logo.png" alt="logo" width="400" height="auto" />
+  
+  <h1>DocStream</h1>
+  
+  <p>
+    <b>Turn messy documents into clear, searchable data.</b>
+  </p>
+  
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)
 ![Status](https://img.shields.io/badge/status-active-success.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Go Version](https://img.shields.io/badge/go-1.21+-00ADD8.svg)
