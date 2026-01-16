@@ -73,13 +73,79 @@ services:
       - qdrant_data:/qdrant/storage
     environment:
       QDRANT__SERVICE__GRPC_PORT: 6334
+    # Uses bash (TCP check) instead of curl, which is missing in Qdrant image
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/"]
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/6333'"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - docstream-network
+
+  # APPLICATION SERVICES
+  # Ingestion Worker - PDF Processing with Vision Models
+  ingestion-worker:
+    build:
+      context: ./services/ingestion-worker
+      dockerfile: Dockerfile
+    container_name: docstream-ingestion-worker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    environment:
+      # RabbitMQ
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      RABBITMQ_QUEUE: ingestion_queue
+      
+      # MinIO
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_NAME: documents
+      MINIO_USE_SSL: "false"
+      
+      # Qdrant
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      COLLECTION_NAME: documents
+      
+      # Vision Model Settings
+      MODEL_PATH: /app/models/Qwen2-VL-2B-Instruct-Q4_K_M.gguf
+      MMPROJ_PATH: /app/models/mmproj-Qwen2-VL-2B-Instruct-f16.gguf
+      USE_GPU: "true"
+      
+      # Chunking & Embedding
+      CHUNK_SIZE: 512
+      CHUNK_OVERLAP: 50
+      EMBEDDING_MODEL: all-MiniLM-L6-v2
+      PDF_DPI: 150
+    volumes:
+      # Optional: mount models directory if you want to update models without rebuilding
+      # - ./services/ingestion-worker/models:/app/models:ro
+      
+      # FIX APPLIED BELOW:
+      # Changed from /tmp/ingestion-cache (Host System Path) 
+      # to ./data/ingestion-cache (Project Local Path)
+      # This fixes the "Mounts denied" error on Docker Desktop Linux
+      - ./data/ingestion-cache:/tmp
+    restart: unless-stopped
+    networks:
+      - docstream-network
+    # Resource limits (adjust based on your system)
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
 
 volumes:
   rabbitmq_data:
