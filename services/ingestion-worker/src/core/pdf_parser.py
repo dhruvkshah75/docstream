@@ -51,6 +51,7 @@ class VisionPDFParser:
     def parse_pdf_in_batches(
             self, 
             pdf_bytes: bytes, 
+            source_name: str,
             batch_size: int = 10, 
             dpi: int = 150
         ) -> Generator[List[Dict], None, None]:
@@ -80,7 +81,9 @@ class VisionPDFParser:
         # Main Processing Loop (The Stream)
         "This takes in batches of 10 pages from the pdf"
         for start_page in range(1, total_pages + 1, batch_size):
-            end_page = min(start_page + batch_size - 1, total_pages)
+            # loop goes like 1-11 pages then 11-21 and so on 
+            # The overlap is created for not losing context at 10th and 11th page 
+            end_page = min(start_page + batch_size , total_pages)
 
             logger.info(f"Extracting Batch: Pages {start_page}-{end_page}...")
             batch_results = []
@@ -110,6 +113,7 @@ class VisionPDFParser:
                         "page_num": current_page_num,
                         "text": text,
                         "metadata": {
+                            "source": source_name,
                             "total_pages": total_pages,
                             "processed_at_dpi": dpi
                         }
@@ -131,7 +135,7 @@ class VisionPDFParser:
                 # Yield error metadata so the job doesn't fail silently
                 yield [{"page_num": start_page, "error": str(e)}]
 
-            logger.info("PDF Stream Complete.")
+        logger.info("PDF Stream Complete.")
 
 
     def _run_inference(self, image: Image.Image) -> str:
